@@ -33,14 +33,15 @@ def test(inputShape, indexShape, axis, test_dtype, device):
     input_ptr = ctypes.cast(inputTensor.data_ptr(), ctypes.POINTER(ctypes.c_void_p))
     index_ptr = ctypes.cast(indexTensor.data_ptr(), ctypes.POINTER(ctypes.c_void_p))
     output_ptr = ctypes.cast(Q_output.data_ptr(), ctypes.POINTER(ctypes.c_void_p))
-
+    shape_ptr = (ctypes.c_int * len(outTensor.shape))(*outTensor.shape)
+    
     if test_dtype == torch.float32:
         if device == "cuda":
-            torch_gather_time = performance.CudaProfile((gather, (rank, axis, inputTensor, indexTensor)))
+            torch_gather_time = performance.CudaProfile((gather_f32, (rank,len(outTensor.shape),outTensor.shape,shape_ptr, axis, input_ptr, index_ptr,output_ptr)))
             custom_gather_time = 0
     if test_dtype == torch.float16:
         if device == "cuda":
-            torch_gather_time = performance.CudaProfile((gather, (rank, axis, inputTensor, indexTensor)))
+            torch_gather_time = performance.CudaProfile((gather_f16, (rank,len(outTensor.shape),outTensor.shape,shape_ptr, axis, input_ptr, index_ptr,output_ptr)))
             custom_gather_time = 0
     performance.logBenchmark(torch_gather_time, custom_gather_time)
 
